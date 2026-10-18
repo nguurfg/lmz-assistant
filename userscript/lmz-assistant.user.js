@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         猎梦者助手（免登录直玩 + 作弊菜单）
 // @namespace    https://github.com/lmzydocs/lmz-assistant
-// @version      6.3
+// @version      6.4
 // @description  233乐园小游戏助手：免登录直玩、免激励视频、游戏内作弊菜单、存档导入导出。纯本地修改，不上传任何数据。
 // @author       lmzydocs
 // @match        https://h5.metaapp.cn/*
@@ -367,6 +367,61 @@
       writeJSON(k, s);
     }
   }
+  /* ---- 新手流程字段（2026-10-18 实测 + bundle.js 静态确认） ----
+   * bundle.js 里的启动逻辑：
+   *   0==_lastDate && _win+_lose==0 || (_isNewPlayer=1)
+   *   → 只要 _lastDate!=0 或 有胜场，游戏就强制把 _isNewPlayer 设回 1
+   *   → isNewPlayer!=0 时游戏强制弹公告板(onBulletinBoardClick)、
+   *     显示新手箭头引导、血量×1.2，表现为「设置/皮肤不显示」
+   * 所以要把整个新手状态一次性写成"已完成"，不能只改一个字段。 */
+  function finishTutorial() {
+    backupOnce();
+    var n = 0;
+    var pd = readJSON(KEY_MAIN, null) || {};
+
+    // 1) 新手态相关（无条件写，这是本功能的核心）
+    pd._isNewPlayer = 0; n++;
+    pd._newplayday = 0; n++;
+    // 2) 场次：让游戏认为"已经玩过了"
+    if (typeof pd._win === 'number') { pd._win = Math.max(pd._win, 1); n++; }
+    if (typeof pd._lose === 'number') { pd._lose = Math.max(pd._lose, 1); n++; }
+    // 3) 日期字段：_lastDate 非 0 是游戏判定"非首日"的依据
+    if (pd._lastDate !== undefined) { pd._lastDate = new Date().getDate(); n++; }
+    if (pd._dayCount !== undefined) { pd._dayCount = Date.now(); n++; }
+    if (pd._lastDay !== undefined) { pd._lastDay = Date.now(); n++; }
+    if (pd._dday !== undefined) { pd._dday = 2; n++; }
+    // 4) 教程/任务标记（字段名在不同版本有变化，存在才写）
+    ['_taskOk', '_isTeachOver', '_teachOver', '_isGuideOver', '_guideOver',
+     '_isFinishGuide', '_isTutorialOver', '_tutorial'
+    ].forEach(function (k) { if (pd[k] !== undefined) { pd[k] = true; n++; } });
+    // 5) 经典模式场次：模式解锁/进度的常见判据
+    if (typeof pd._normalCount === 'number') { pd._normalCount = Math.max(pd._normalCount, 1); n++; }
+    if (typeof pd._gameCount === 'number') { pd._gameCount = Math.max(pd._gameCount, 1); n++; }
+    // 6) 关卡可开放标记
+    pd._iscanopenGamelev = true; n++;
+
+    writeJSON(KEY_MAIN, pd);
+
+    // cloudData 里也有一份 iscanopenGamelev
+    var cd = readJSON(KEY_CLOUD, null);
+    if (cd) { cd.iscanopenGamelev = true; writeJSON(KEY_CLOUD, cd); }
+
+    // 7) 副存档的新手引导标记（_save_110.isTeachOver 等）
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k.indexOf(SAVE_PREFIX) !== 0) continue;
+      var s = readJSON(k, null);
+      if (!s) continue;
+      ['isTeachOver', 'isGuideOver', 'isTutorialOver', 'isFinishGuide',
+       'teachOver', 'guideOver'].forEach(function (f) {
+        if (s[f] !== undefined) { s[f] = true; n++; }
+      });
+      if (typeof s.levelNum === 'number') { s.levelNum = Math.max(s.levelNum, 2); n++; }
+      writeJSON(k, s);
+    }
+    return n;
+  }
+
   function applyAll() {
     backupOnce();
     var pd = readJSON(KEY_MAIN, null);
@@ -560,6 +615,13 @@
       else { localStorage.removeItem(GAME_URL_KEY); alert('已恢复默认'); }
     };
     urlRow.appendChild(urlBtn);
+
+    var g0 = grid();
+    addBtn(g0, '★ 完成新手流程', function () {
+      if (!need()) return;
+      var n = finishTutorial();
+      alert('已写 ' + n + ' 个新手字段，刷新页面生效'); closePanel();
+    }, true);
 
     var g1 = grid();
     addBtn(g1, '一键全刷', function () {
