@@ -89,6 +89,16 @@
     点上面按钮 → 浏览器弹出「安装脚本 / 添加脚本」→ 点<b>确定</b><br>
     如果只看到一堆代码、没弹安装框，说明当前浏览器不支持用户脚本，看下面的「安装步骤」
   </p>
+  <hr style="border:0;border-top:1px solid var(--line);margin:18px 0 14px">
+  <a class="btn btn-ghost"
+     href="https://h5.metaapp.cn/online/h5/UAFvivbmbCZNJJ8wmkXR/1.0.0/index.html"
+     target="_blank" rel="noopener">
+    🎮 直接打开游戏（装完脚本后点这个）
+  </a>
+  <p style="color:var(--dim);font-size:13px;margin-top:12px">
+    ★ 装好脚本后建议<b>从下面这个按钮进游戏</b>，脚本必然生效<br>
+    （从 233 站内进游戏是 iframe，部分浏览器不注入脚本）
+  </p>
 </div>
 
 <h2>安装步骤</h2>
@@ -144,21 +154,34 @@
       <h3 style="margin-top:0">方案 B · Via 浏览器（自带的，不用装扩展）</h3>
       <ol>
         <li>安装 <b>Via 浏览器</b></li>
-        <li>菜单 → 设置 → 通用 → 打开「<b>允许网页脚本</b>」<br>
-            （部分版本在「设置 → 脚本」里）</li>
+        <li>菜单 → 设置 → 通用 → 打开「<b>允许网页脚本</b><br>
+            （部分版本在「设置 → 脚本」里，必须开，不开脚本完全不执行）</li>
         <li>用 Via 打开本页 → 点顶部「一键安装脚本」</li>
         <li>Via 弹出「是否安装此脚本」→ 点<b>确定</b></li>
       </ol>
       <p style="color:var(--dim);font-size:13px;margin:8px 0 0">
-        ★ Via 是原生支持用户脚本，<b>不需要</b>装 Tampermonkey，也不需要手动导入文件。
+        ★ Via 原生支持用户脚本，<b>不需要</b>装 Tampermonkey，也不需要手动导入文件。
+      </p>
+      <p style="color:var(--yellow);font-size:13px;margin:8px 0 0">
+        ⚠ Via <b>不一定会往游戏 iframe 里注入</b>。如果从 233 站点进游戏看不到齿轮菜单，
+        见下面「从 233 进游戏没反应」。
       </p>
     </div>
   </div>
+  <div class="note warn">
+    <b>从 233 站点进游戏、看不到齿轮菜单？（Via 常见）</b><br>
+    233 的游戏是嵌在 iframe 里的（域名为 <code>h5.metaapp.cn</code>）。
+    Via 对「站点自己创建的 iframe」有时不注入脚本。<br><br>
+    <b>解决办法：直接打开游戏直链</b>（跳过 233 的 iframe 层），
+    在 Via 地址栏输入下面这个地址访问即可：<br>
+    <code id="gameDirectUrl" style="user-select:all;word-break:break-all">https://h5.metaapp.cn/online/h5/UAFvivbmbCZNJJ8wmkXR/1.0.0/index.html</code>
+  </div>
   <div class="note">
-    <b>Via 装了脚本没生效？</b><br>
-    ① 确认「允许网页脚本」已打开；② 脚本需要匹配目标站点，本脚本已覆盖
-    <code>233leyuan.com</code> 与 <code>h5.metaapp.cn</code>；
-    ③ 若仍无效，菜单 → 脚本 → 找到「猎梦者助手」手动启用。
+    <b>装了还是没生效？按顺序查：</b><br>
+    ① 设置 → 脚本 →「允许网页脚本」是否打开<br>
+    ② 设置 → 脚本 → 列表里是否有「猎梦者助手」且为启用态<br>
+    ③ 是否从 <code>h5.metaapp.cn</code> 直链打开的（而不是从 233 站点点进去）<br>
+    ④ 以上都试过还不行 → 换方案 A（Kiwi + Tampermonkey），那条路是确定可用的
   </div>
 </div>
 
@@ -218,6 +241,22 @@
 </ul>
 
 <h2>常见问题</h2>
+
+<h3>从 233 站内进游戏，看不到齿轮菜单？</h3>
+<div class="note warn">
+  233 的游戏是嵌在 iframe 里的，部分浏览器（<b>Via 最常见</b>）不会往这个 iframe 注入脚本。<br><br>
+  <b>解决办法：不要从 233 站内点「开始游戏」。</b><br>
+  装好脚本后，用本页顶部的「<b>🎮 直接打开游戏</b>」按钮进入游戏，脚本必然生效。
+</div>
+
+<h3>Via 浏览器装了脚本但完全没执行？</h3>
+<div class="note">
+  按顺序检查：<br>
+  ① 菜单 → 设置 → 脚本 →「<b>允许网页脚本</b>」是否打开（不打开 = 脚本完全不跑）<br>
+  ② 菜单 → 设置 → 脚本 → 列表里是否有「猎梦者助手」且是启用态<br>
+  ③ 是否从 <code>h5.metaapp.cn</code> 直链打开的<br>
+  ④ 以上都过 → 换 <b>Kiwi Browser + Tampermonkey</b>，那条路确定可用
+</div>
 
 <h3>点了齿轮没反应？</h3>
 <div class="note">

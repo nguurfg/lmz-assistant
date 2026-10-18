@@ -25,9 +25,41 @@
 ## 安装（不懂油猴也能装）
 
 打开 **`web/index.html`**（GitHub Pages 上即为仓库首页），
-点「⬇ 下载安装脚本」，按页面里的分平台图文步骤操作即可。
+点「⬇ 一键安装脚本」，按页面里的分平台图文步骤操作即可。
 
 一站式页面同时覆盖：Chrome / Edge / Firefox / Android(Kiwi、Via) / iOS / 手动安装。
+
+---
+
+## ⚠ 已知浏览器限制（重要，先看这段再装）
+
+**游戏是嵌在 iframe 里的，浏览器不一定会往 iframe 注入脚本。**
+
+| 浏览器 | 能否正常用 | 说明 |
+|---|---|---|
+| Chrome / Edge / Firefox + Tampermonkey | ✅ 完全正常 | 最推荐 |
+| Kiwi Browser + Tampermonkey | ✅ 完全正常 | Android 最推荐 |
+| Via 浏览器 | ⚠️ 需变通 | 见下 |
+| iOS Safari | ❌ 不支持 | 需换 Stay / Browsers |
+
+### Via 浏览器怎么用
+
+Via 原生支持用户脚本，**不需要装 Tampermonkey**，但有两个坎：
+
+1. **必须先开开关**：菜单 → 设置 → 脚本（或「通用」）→ 打开「**允许网页脚本**」。
+   这个不开，脚本一行都不会执行。
+2. **Via 可能不往游戏 iframe 注入**：233 的游戏嵌在 `h5.metaapp.cn` 的 iframe 里，
+   Via 对「站点自己创建的 iframe」经常不注入。
+
+**所以 Via 用户请这样做：**
+
+```
+装好脚本后，不要从 233 站内点「开始游戏」，
+直接用这个地址进游戏：
+https://h5.metaapp.cn/online/h5/UAFvivbmbCZNJJ8wmkXR/1.0.0/index.html
+```
+
+安装页顶部有个「🎮 直接打开游戏」按钮，点它就行。
 
 ---
 
