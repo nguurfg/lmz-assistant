@@ -1,0 +1,16 @@
+# 中间产物
+*.deob.js
+decoded_strings.json
+decoded_strings.txt
+node_modules/
+.DS_Store
+Thumbs.db
+
+# 明确禁止提交：游戏本体代码与素材（著作权不属于本项目）
+bundle.js
+*.atlas
+*.sk
+*.mp3
+*.png
+*.jpg
+site/
