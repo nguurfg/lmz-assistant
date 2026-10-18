@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         猎梦者助手（免登录直玩 + 作弊菜单）
 // @namespace    https://github.com/lmzydocs/lmz-assistant
-// @version      6.5
+// @version      6.6
 // @description  233乐园小游戏助手：免登录直玩、免激励视频、游戏内作弊菜单、存档导入导出。纯本地修改，不上传任何数据。
 // @author       lmzydocs
 // @match        https://h5.metaapp.cn/*
 // @match        https://www.233leyuan.com/*
 // @match        https://*.233leyuan.com/*
-// @run-at       document-start
+// @run-at       document-end
+// @all-frames   true
 // @grant        none
 // @license      MIT
 // @homeURL      https://github.com/lmzydocs/lmz-assistant
@@ -714,6 +715,8 @@
 
   /* ------------------------- 启动 ------------------------- */
   function boot() {
+    if (window.__lmzBooted) return;      // 防止同帧重复启动
+    window.__lmzBooted = true;
     if (CFG.guestMode) ensureGuestIdentity();
     patchAds();
     // ★ 进入即 = 已完成一局：不弹引导/公告板，模式与关卡直接是通关后的状态
@@ -735,4 +738,6 @@
   } else {
     boot();
   }
+  // 兜底：某些浏览器（Via / Kiwi）在 document-end 不一定准时触发
+  setTimeout(function () { if (!window.__lmzBooted) boot(); }, 3000);
 })();
