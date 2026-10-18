@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>猎梦者助手 · 一键安装向导</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#263041;
+    --fg:#e6edf3; --dim:#8b949e; --blue:#2f81f7; --green:#3fb950;
+    --yellow:#d29922; --red:#f85149;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap{max-width:820px;margin:0 auto;padding:32px 20px 80px}
+  header{padding:28px 0 20px;border-bottom:1px solid var(--line);margin-bottom:28px}
+  h1{margin:0 0 8px;font-size:27px;letter-spacing:-.3px}
+  .sub{color:var(--dim);font-size:14px;margin:0}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;
+    background:#12263a;color:#79c0ff;border:1px solid #1f6feb;margin-right:6px}
+  h2{font-size:19px;margin:34px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:16px;margin:22px 0 8px;color:#e6edf3}
+  p{margin:10px 0}
+  a{color:var(--blue)}
+  code,kbd{background:#1c2128;padding:2px 6px;border-radius:4px;font-size:13px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#79c0ff}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:20px 22px;margin:18px 0}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+  .steps>li{counter-increment:s;position:relative;padding:0 0 18px 42px;margin:0}
+  .steps>li::before{
+    content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;
+    background:#1f6feb;color:#fff;border-radius:50%;text-align:center;
+    line-height:26px;font-size:14px;font-weight:600}
+  .steps>li::after{content:"";position:absolute;left:13px;top:32px;bottom:2px;width:2px;background:var(--line)}
+  .steps>li:last-child::after{display:none}
+  .btn{display:inline-block;padding:13px 26px;border-radius:8px;font-size:16px;font-weight:600;
+    text-decoration:none;cursor:pointer;border:0;transition:.15s}
+  .btn-primary{background:var(--green);color:#04210c}
+  .btn-primary:hover{background:#4cc763}
+  .btn-ghost{background:#21262d;color:var(--fg);border:1px solid var(--line)}
+  .btn-ghost:hover{background:#2d333b}
+  .center{text-align:center;margin:26px 0}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+  th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--dim);font-weight:600;background:#11161d}
+  .note{border-left:3px solid var(--blue);background:#0f1c2e;padding:12px 16px;
+    border-radius:0 8px 8px 0;margin:16px 0;font-size:14px}
+  .warn{border-left-color:var(--yellow);background:#2b2410}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 0;border-bottom:1px solid var(--line)}
+  .tab{padding:10px 18px;border-radius:8px 8px 0 0;cursor:pointer;color:var(--dim);
+    background:#11161d;border:1px solid var(--line);border-bottom:none;font-size:14px}
+  .tab.active{background:var(--panel);color:var(--fg);font-weight:600}
+  .tabpane{display:none;padding:20px 0}
+  .tabpane.active{display:block}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+  ul{padding-left:22px} li{margin:5px 0}
+  footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--line);
+    color:var(--dim);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>猎梦者助手</h1>
+  <p class="sub">
+    <span class="badge">免登录</span>
+    <span class="badge">免激励视频</span>
+    <span class="badge">游戏内菜单</span>
+    <span class="badge">存档导入导出</span>
+  </p>
+  <p class="sub" style="margin-top:10px">
+    浏览器用户脚本（Tampermonkey / Violentmonkey 通用）。全部逻辑在本地运行，不上传任何数据。
+  </p>
+</header>
+
+<div class="card center">
+  <p style="color:var(--dim);margin-bottom:16px">
+    已装好 Tampermonkey / Violentmonkey？<b>点下面按钮直接装</b>，无需下载文件
+  </p>
+  <a class="btn btn-primary" href="https://nguurfg.github.io/lmz-assistant/userscript/lmz-assistant.user.js"
+     id="installBtn" target="_blank" rel="noopener">
+    ⬇ 一键安装脚本
+  </a>
+  <p style="color:var(--dim);font-size:13px;margin-top:14px" id="installHint">
+    点开后扩展会自动弹出「安装用户脚本」确认框 → 点<b>安装</b>即可
+  </p>
+</div>
+
+<div class="note" style="margin-top:0">
+  <b>没装扩展会怎样？</b><br>
+  点了按钮只会看到一页脚本文本，装不上。<br>
+  → 先按下方「安装步骤」页签装好 <b>Tampermonkey</b>（或 Violentmonkey），
+  再回来点这个按钮，10 秒搞定。
+</div>
+
+<h2>安装步骤</h2>
+
+<div class="tabs">
+  <div class="tab active" data-t="chrome">Chrome / Edge</div>
+  <div class="tab" data-t="firefox">Firefox</div>
+  <div class="tab" data-t="android">Android</div>
+  <div class="tab" data-t="ios">iOS Safari</div>
+  <div class="tab" data-t="manual">手动安装</div>
+</div>
+
+<div class="tabpane active" id="chrome">
+  <ol class="steps">
+    <li><b>安装扩展</b><br>
+      打开 <a href="https://www.tampermonkey.net" target="_blank" rel="noopener">Tampermonkey</a> 官网，
+      点「安装」→ 添加 Chrome 扩展 → 确认。
+    </li>
+    <li><b>安装脚本</b><br>
+      点本页顶部的 <b>⬇ 下载安装脚本</b>，浏览器会提示「是否安装用户脚本」→ 点 <b>安装</b>。
+    </li>
+    <li><b>确认启用</b><br>
+      点浏览器工具栏的 Tampermonkey 图标，确认「猎梦者助手」已启用（图标为绿）。
+    </li>
+    <li><b>验证</b><br>
+      打开 <code>https://www.233leyuan.com/mini-game</code>，进入游戏后左上角应出现齿轮按钮，点击即打开菜单。
+    </li>
+  </ol>
+</div>
+
+<div class="tabpane" id="firefox">
+  <ol class="steps">
+    <li><b>安装扩展</b><br>
+      打开 <a href="https://violentmonkey.github.io" target="_blank" rel="noopener">Violentmonkey</a>，
+      点「Install for Firefox」→ 添加 → 确认。
+    </li>
+    <li><b>安装脚本</b><br>点本页顶部按钮 → 弹窗中点 <b>安装</b>。</li>
+    <li><b>验证</b><br>同 Chrome 步骤 4。</li>
+  </ol>
+</div>
+
+<div class="tabpane" id="android">
+  <div class="grid2">
+    <div class="card" style="margin:0">
+      <h3 style="margin-top:0">方案 A · Kiwi Browser（推荐）</h3>
+      <ol>
+        <li>应用商店安装 <b>Kiwi Browser</b></li>
+        <li>菜单 → 扩展 → 安装 <b>Tampermonkey</b></li>
+        <li>用 Kiwi 打开本页 → 点顶部下载按钮 → 安装</li>
+      </ol>
+    </div>
+    <div class="card" style="margin:0">
+      <h3 style="margin-top:0">方案 B · Via 浏览器</h3>
+      <ol>
+        <li>安装 <b>Via 浏览器</b></li>
+        <li>设置 → 高级 → 开启「开发者模式」/ 允许 UserScript</li>
+        <li>用 Via 打开本页 → 下载脚本文件 → 手动导入</li>
+      </ol>
+    </div>
+  </div>
+  <div class="note">
+    部分国产浏览器需在系统设置中允许「安装未知来源应用」或开启无障碍权限。
+  </div>
+</div>
+
+<div class="tabpane" id="ios">
+  <div class="note warn">iOS Safari 不支持油猴扩展。可行的替代方案：</div>
+  <ol class="steps">
+    <li>在 <b>App Store</b> 安装支持脚本的浏览器，例如 <b>Stay</b>、<b>Browsers</b>。</li>
+    <li>或改用 <b>电脑端</b>：本脚本在 Chrome / Firefox / Edge 上功能完全一致。</li>
+  </ol>
+</div>
+
+<div class="tabpane" id="manual">
+  <p>如果浏览器不自动弹出安装框，可手动把脚本内容粘贴进去：</p>
+  <ol class="steps">
+    <li>打开用户脚本扩展的管理面板（Tampermonkey → <b>管理面板</b>）</li>
+    <li>新建脚本，删除默认模板</li>
+    <li>复制 <code>userscript/lmz-assistant.user.js</code> 全文粘贴进去</li>
+    <li>按 <kbd>Ctrl/Cmd</kbd>+<kbd>S</kbd> 保存</li>
+  </ol>
+</div>
+
+<h2>功能说明</h2>
+
+<table>
+  <tr><th>模块</th><th>说明</th></tr>
+  <tr><td><b>免登录</b></td>
+      <td>移除 233 站点的登录弹窗与「正在打开登录…」遮罩，自动注入带游客身份的游戏 iframe。
+      游客 ID 存于本地，不会关联真实账号。</td></tr>
+  <tr><td><b>免激励视频</b></td>
+      <td>拦截广告请求并直接发放奖励。菜单内可随时开关，关掉即恢复原始行为。</td></tr>
+  <tr><td><b>游戏内菜单</b></td>
+      <td>挂载到游戏左上角原生齿轮按钮，点击打开。</td></tr>
+  <tr><td><b>数值修改</b></td>
+      <td>金币、皮肤碎片、黄金钥匙、战绩、关卡进度（均写入浏览器 localStorage）。</td></tr>
+  <tr><td><b>解锁内容</b></td>
+      <td>6 个游戏模式、6 个玩家皮肤 + 7 个鬼皮肤、16 项建筑蓝图、8 张剧情地图。</td></tr>
+  <tr><td><b>存档管理</b></td>
+      <td>导出 / 导入 JSON 存档文件，以及本地快照备份与恢复。</td></tr>
+</table>
+
+<div class="note">
+  脚本<b>只修改浏览器本地存储</b>，不读取、不上传任何个人信息，也不会向第三方发送数据。
+</div>
+
+<h2>关于存档</h2>
+<div class="note warn">
+  该游戏的进度<b>完全保存在浏览器 localStorage</b>，不上传服务器，也没有云同步。
+  这意味着：<b>清理浏览器数据、换浏览器、换手机都会丢失进度。</b>
+  建议每隔一段时间在菜单里点一次「<b>导出存档</b>」保存 JSON 文件。
+</div>
+
+<h3>恢复存档</h3>
+<ul>
+  <li>在旧设备菜单点「导出存档」，得到 <code>lmz-save-xxxx.json</code></li>
+  <li>把文件传到新设备</li>
+  <li>在新设备菜单点「导入存档」，选择该文件</li>
+</ul>
+
+<h2>常见问题</h2>
+
+<h3>点了齿轮没反应？</h3>
+<div class="note">
+  该按钮在游戏内是<b>动态渲染</b>的，需等游戏主界面完全加载（进度 100%）后再点。
+  脚本每 250ms 会自动把按钮置顶并挂载监听。
+</div>
+
+<h3>换游戏后打不开？</h3>
+<div class="note">
+  打开菜单 → 「游戏地址」→ 点「设置」→ 粘贴该游戏的页面地址。
+  脚本会优先使用你填写的地址。
+</div>
+
+<h3>提示「未找到存档」？</h3>
+<p>说明该浏览器还没玩过这个游戏。先正常玩一次生成存档，再使用修改功能。</p>
+
+<h3>修改后没生效？</h3>
+<p>修改写入的是 localStorage，<b>需要刷新页面</b>才会被游戏重新读取。</p>
+
+<h3>想完全恢复原状？</h3>
+<ol>
+  <li>在扩展面板中禁用或删除本脚本</li>
+  <li>如需恢复进度：菜单 →「恢复备份」（前提是之前点过「备份当前」）</li>
+  <li>最彻底：清除该站点的浏览器数据</li>
+</ol>
+
+<h2>技术原理（简版）</h2>
+<div class="card">
+  <p>脚本分三个部分运行：</p>
+  <ol>
+    <li><b>存储层</b>：游戏把进度写在 <code>localStorage</code> 的几个固定 key 下
+        （主存档、关卡进度、副存档）。脚本直接读写这些 JSON 结构。</li>
+    <li><b>广告层</b>：游戏的激励视频只有一个入口函数，且只在收到特定状态码时才发奖。
+        替换该函数即可实现"跳过广告仍拿到奖励"。</li>
+    <li><b>主站层</b>：233 站点在未登录时会用登录框覆盖游戏区域，
+        移除该覆盖层并重新注入游戏 iframe 即可。</li>
+  </ol>
+  <p style="color:var(--dim);font-size:14px">
+    完整的逆向分析过程、混淆结构拆解与踩坑记录见仓库 <code>docs/</code> 目录。
+  </p>
+</div>
+
+<footer>
+  <p>本项目仅供学习研究浏览器存储机制与运行时注入技术，请勿用于商业目的。</p>
+  <p>游戏本体代码与素材著作权属于原开发者，本仓库<b>不包含任何游戏源码或素材</b>。</p>
+</footer>
+
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
+      document.querySelectorAll('.tabpane').forEach(function(x){ x.classList.remove('active'); });
+      t.classList.add('active');
+      document.getElementById(t.dataset.t).classList.add('active');
+    });
+  });
+
+  // 检测是否已装用户脚本扩展：Tampermonkey / Violentmonkey 都会往 window 挂对象
+  (function(){
+    var hasExt = !!(window.Tampermonkey || window.Violentmonkey || window.GM_info);
+    var btn = document.getElementById('installBtn');
+    var hint = document.getElementById('installHint');
+    if (!hasExt){
+      // 没扩展：不直接跳脚本文本页，先引导去装扩展
+      btn.textContent = '① 先安装 Tampermonkey';
+      btn.href = 'https://www.tampermonkey.net';
+      hint.innerHTML = '装完扩展后<b>刷新本页</b>，这个按钮会变成「一键安装脚本」';
+    }
+  })();
+</script>
+</body>
+</html>
