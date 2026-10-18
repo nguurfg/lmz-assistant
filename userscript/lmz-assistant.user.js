@@ -1,12 +1,15 @@
 // ==UserScript==
 // @name         猎梦者助手（免登录直玩 + 作弊菜单）
 // @namespace    https://github.com/lmzydocs/lmz-assistant
-// @version      6.6
+// @version      6.7
 // @description  233乐园小游戏助手：免登录直玩、免激励视频、游戏内作弊菜单、存档导入导出。纯本地修改，不上传任何数据。
 // @author       lmzydocs
-// @match        https://h5.metaapp.cn/*
-// @match        https://www.233leyuan.com/*
-// @match        https://*.233leyuan.com/*
+// @match        *://h5.metaapp.cn/*
+// @match        *://*.h5.metaapp.cn/*
+// @match        *://www.233leyuan.com/*
+// @match        *://233leyuan.com/*
+// @include      *://h5.metaapp.cn/*
+// @include      *://www.233leyuan.com/*
 // @run-at       document-end
 // @all-frames   true
 // @grant        none
