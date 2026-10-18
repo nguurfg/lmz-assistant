@@ -80,22 +80,15 @@
 </header>
 
 <div class="card center">
-  <p style="color:var(--dim);margin-bottom:16px">
-    已装好 Tampermonkey / Violentmonkey？<b>点下面按钮直接装</b>，无需下载文件
-  </p>
-  <a class="btn btn-primary" href="https://nguurfg.github.io/lmz-assistant/userscript/lmz-assistant.user.js"
-     id="installBtn" target="_blank" rel="noopener">
+  <a class="btn btn-primary"
+     href="https://nguurfg.github.io/lmz-assistant/userscript/lmz-assistant.user.js"
+     target="_blank" rel="noopener">
     ⬇ 一键安装脚本
   </a>
-  <p style="color:var(--dim);font-size:13px;margin-top:14px" id="installHint">
-    点开后扩展会自动弹出「安装用户脚本」确认框 → 点<b>安装</b>即可
+  <p style="color:var(--dim);font-size:13px;margin-top:16px">
+    点上面按钮 → 浏览器弹出「安装脚本 / 添加脚本」→ 点<b>确定</b><br>
+    如果只看到一堆代码、没弹安装框，说明当前浏览器不支持用户脚本，看下面的「安装步骤」
   </p>
-</div>
-
-<div class="note" style="margin-top:0" id="extNote">
-  <b>当前浏览器直接点上面的按钮就行。</b><br>
-  若点了只看到一页脚本文本、没弹安装框：说明你的浏览器不支持用户脚本，<br>
-  按下方「安装步骤」页签装好 <b>Tampermonkey</b>（或换 Kiwi / Via 等支持脚本的浏览器），再回来点一次。
 </div>
 
 <h2>安装步骤</h2>
@@ -283,30 +276,6 @@
       document.getElementById(t.dataset.t).classList.add('active');
     });
   });
-
-  // 检测浏览器是否支持用户脚本：
-  // ① Tampermonkey / Violentmonkey 会往 window 挂对象
-  // ② Via / 部分国产浏览器「自带脚本」功能 —— UA 里有 via / quark / uc / quokka 等
-  (function(){
-    var ua = navigator.userAgent || '';
-    var hasExt = !!(window.Tampermonkey || window.Violentmonkey || window.GM_info);
-    var selfScripted = /via|quark|ucbrowser|ubrowser|quokka|lemur|xweb/i.test(ua);
-    var btn = document.getElementById('installBtn');
-    var hint = document.getElementById('installHint');
-    var note = document.getElementById('extNote');
-    if (hasExt){
-      // 已有扩展，什么都不改
-    } else if (selfScripted){
-      // 自带脚本的浏览器（Via 等）：按钮本来就是脚本直链，可直接用
-      btn.textContent = '⬇ 一键安装脚本（Via 打开即装）';
-      hint.innerHTML = 'Via 会自动识别 → 弹出「安装脚本」确认框 → 点<b>确定</b><br>' +
-        '（如只显示源码：菜单 → 设置 → 脚本 → 开启「允许网页脚本」）';
-    } else {
-      btn.textContent = '① 先安装 Tampermonkey';
-      btn.href = 'https://www.tampermonkey.net';
-      hint.innerHTML = '装完扩展后<b>刷新本页</b>，这个按钮会变成「一键安装脚本」';
-    }
-  })();
 </script>
 </body>
 </html>
