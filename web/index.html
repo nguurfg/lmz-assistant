@@ -92,11 +92,10 @@
   </p>
 </div>
 
-<div class="note" style="margin-top:0">
-  <b>没装扩展会怎样？</b><br>
-  点了按钮只会看到一页脚本文本，装不上。<br>
-  → 先按下方「安装步骤」页签装好 <b>Tampermonkey</b>（或 Violentmonkey），
-  再回来点这个按钮，10 秒搞定。
+<div class="note" style="margin-top:0" id="extNote">
+  <b>当前浏览器直接点上面的按钮就行。</b><br>
+  若点了只看到一页脚本文本、没弹安装框：说明你的浏览器不支持用户脚本，<br>
+  按下方「安装步骤」页签装好 <b>Tampermonkey</b>（或换 Kiwi / Via 等支持脚本的浏览器），再回来点一次。
 </div>
 
 <h2>安装步骤</h2>
@@ -149,16 +148,24 @@
       </ol>
     </div>
     <div class="card" style="margin:0">
-      <h3 style="margin-top:0">方案 B · Via 浏览器</h3>
+      <h3 style="margin-top:0">方案 B · Via 浏览器（自带的，不用装扩展）</h3>
       <ol>
         <li>安装 <b>Via 浏览器</b></li>
-        <li>设置 → 高级 → 开启「开发者模式」/ 允许 UserScript</li>
-        <li>用 Via 打开本页 → 下载脚本文件 → 手动导入</li>
+        <li>菜单 → 设置 → 通用 → 打开「<b>允许网页脚本</b>」<br>
+            （部分版本在「设置 → 脚本」里）</li>
+        <li>用 Via 打开本页 → 点顶部「一键安装脚本」</li>
+        <li>Via 弹出「是否安装此脚本」→ 点<b>确定</b></li>
       </ol>
+      <p style="color:var(--dim);font-size:13px;margin:8px 0 0">
+        ★ Via 是原生支持用户脚本，<b>不需要</b>装 Tampermonkey，也不需要手动导入文件。
+      </p>
     </div>
   </div>
   <div class="note">
-    部分国产浏览器需在系统设置中允许「安装未知来源应用」或开启无障碍权限。
+    <b>Via 装了脚本没生效？</b><br>
+    ① 确认「允许网页脚本」已打开；② 脚本需要匹配目标站点，本脚本已覆盖
+    <code>233leyuan.com</code> 与 <code>h5.metaapp.cn</code>；
+    ③ 若仍无效，菜单 → 脚本 → 找到「猎梦者助手」手动启用。
   </div>
 </div>
 
@@ -277,13 +284,24 @@
     });
   });
 
-  // 检测是否已装用户脚本扩展：Tampermonkey / Violentmonkey 都会往 window 挂对象
+  // 检测浏览器是否支持用户脚本：
+  // ① Tampermonkey / Violentmonkey 会往 window 挂对象
+  // ② Via / 部分国产浏览器「自带脚本」功能 —— UA 里有 via / quark / uc / quokka 等
   (function(){
+    var ua = navigator.userAgent || '';
     var hasExt = !!(window.Tampermonkey || window.Violentmonkey || window.GM_info);
+    var selfScripted = /via|quark|ucbrowser|ubrowser|quokka|lemur|xweb/i.test(ua);
     var btn = document.getElementById('installBtn');
     var hint = document.getElementById('installHint');
-    if (!hasExt){
-      // 没扩展：不直接跳脚本文本页，先引导去装扩展
+    var note = document.getElementById('extNote');
+    if (hasExt){
+      // 已有扩展，什么都不改
+    } else if (selfScripted){
+      // 自带脚本的浏览器（Via 等）：按钮本来就是脚本直链，可直接用
+      btn.textContent = '⬇ 一键安装脚本（Via 打开即装）';
+      hint.innerHTML = 'Via 会自动识别 → 弹出「安装脚本」确认框 → 点<b>确定</b><br>' +
+        '（如只显示源码：菜单 → 设置 → 脚本 → 开启「允许网页脚本」）';
+    } else {
       btn.textContent = '① 先安装 Tampermonkey';
       btn.href = 'https://www.tampermonkey.net';
       hint.innerHTML = '装完扩展后<b>刷新本页</b>，这个按钮会变成「一键安装脚本」';
