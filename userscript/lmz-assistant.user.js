@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         猎梦者助手（免登录直玩 + 作弊菜单）
 // @namespace    https://github.com/lmzydocs/lmz-assistant
-// @version      6.4
+// @version      6.5
 // @description  233乐园小游戏助手：免登录直玩、免激励视频、游戏内作弊菜单、存档导入导出。纯本地修改，不上传任何数据。
 // @author       lmzydocs
 // @match        https://h5.metaapp.cn/*
@@ -44,6 +44,7 @@
     guestMode: true,
     blockAds: true,
     bypassLogin: true,
+    finishOnEnter: true,   // 进入即完成一局（关掉引导/公告板，关卡模式直接是通关后状态）
     gold: 999999, fragment: 999999, goldenKey: 999,
     win: 999, lose: 0, mvp: 999, mw: 999999,
     gameLev: 99, trollLev: 99,
@@ -182,89 +183,43 @@
 
   /* ------------------------- 免激励视频 -------------------------
    * 广告链路：
-   *   Platform.playVideo(cb) -> MetaH5Ad.showAd(1, handler)
-   *   handler 收到 {data:{status:4}} 时才调 cb.success() 发奖
-   * 方案：替换 playVideo 直接发奖；兜底把 showAd 改成返回奖励态。 */
+   * 方案：只 patch MetaH5Ad.showAd，返回 {code:0,data:{status:4}}。
+   * ★ 千万不要碰 Platform.playVideo —— 它把 status 读出来的形状错了就崩 */
   var adStats = { blocked: 0 };
-  var _origPlayVideo = null, _origShowAd = null;
+  var _origShowAd = null;
 
-  function captureOrig() {
-    try {
-      if (window.Platform && typeof window.Platform.playVideo === 'function' &&
-          !window.Platform.playVideo.__lmz && !_origPlayVideo) {
-        _origPlayVideo = window.Platform.playVideo;
-      }
-      if (window.MetaH5Ad && typeof window.MetaH5Ad.showAd === 'function' &&
-          !window.MetaH5Ad.showAd.__lmz && !_origShowAd) {
-        _origShowAd = window.MetaH5Ad.showAd;
-      }
-    } catch (e) {}
-  }
-
-  function grantNow(s) {
-    if (!s) return;
-    try { if (typeof s.success === 'function') s.success(); } catch (e) {}
-    try { if (typeof s.complete === 'function') s.complete(); } catch (e) {}
-    try { if (typeof s.onSuccess === 'function') s.onSuccess(); } catch (e) {}
-  }
-
+  /* ---- 去广告：只 patch MetaH5Ad.showAd，不碰 Platform ----
+   * 真实调用链（twothreethree.js 源码）：
+   *   Platform.playVideo(s) → MetaH5Ad.showAd(1, cb)
+   *     → cb(a) → switch(a.data.status) → case 4: s.success()
+   * ★ 必须返回 { code:0, data:{ status:4 } }，且 data 不能为 undefined
+   *   （旧版在 Platform 层补丁，返回值形状/none 时机不对 → 报
+   *    "Cannot read properties of undefined (reading 'status')"）
+   * ★ 不 patch Platform：它是 IIFE 里创建的局部对象，
+   *   window.Platform = s 之后再改 s.playVideo 会被 bundle 侧的引用挡住，
+   *   且改它等于改平台层行为，容易崩。 */
   function patchAds() {
     if (!CFG.blockAds) return;
-    captureOrig();
-    try {
-      if (window.Platform && typeof window.Platform.playVideo === 'function' &&
-          !window.Platform.playVideo.__lmz) {
-        var pv = function (s) { adStats.blocked++; grantNow(s); return true; };
-        pv.__lmz = true;
-        window.Platform.playVideo = pv;
-      }
-    } catch (e) {}
-    try {
-      if (window.MetaH5Ad && typeof window.MetaH5Ad.showAd === 'function' &&
-          !window.MetaH5Ad.showAd.__lmz) {
-        var sa = function (type, cb) {
-          adStats.blocked++;
-          try { if (typeof cb === 'function') cb({ code: 0, data: { status: 4 } }); } catch (e) {}
-          return true;
-        };
-        sa.__lmz = true;
-        window.MetaH5Ad.showAd = sa;
-      }
-    } catch (e) {}
+    var M = window.MetaH5Ad;
+    if (!M || typeof M.showAd !== 'function') return;   // SDK 还没加载，下轮再来
+    if (M.showAd.__lmz) return;
+    if (!_origShowAd) _origShowAd = M.showAd;           // 存原版，供 restoreAds
+    var sa = function (type, cb) {
+      adStats.blocked++;
+      try {
+        if (typeof cb === 'function') {
+          cb({ code: 0, data: { status: 4 } });   // 4 = 激励视频奖励
+        }
+      } catch (e) { log('showAd cb err: ' + e); }
+      return true;
+    };
+    sa.__lmz = true;
+    M.showAd = sa;
+    log('已patch MetaH5Ad.showAd');
   }
-
   function restoreAds() {
-    try { if (window.Platform && _origPlayVideo) window.Platform.playVideo = _origPlayVideo; } catch (e) {}
-    try { if (window.MetaH5Ad && _origShowAd) window.MetaH5Ad.showAd = _origShowAd; } catch (e) {}
-  }
-
-  // Platform 由 bundle 在运行时创建，需在创建后打补丁。
-  // ★ 不用 Object.defineProperty setter（游戏高频赋值 window.Platform，
-  //   每次触发都会跑一遍函数替换 → 主线程被拖死，实测页面卡死）
-  // 改为低频扫描（与主循环同频）+ 幂等标记，最多补几次就稳定。
-  var _adPatched = false;
-  function patchPlatformOnce() {
-    if (_adPatched) return;
     try {
-      var P = window.Platform;
-      if (!P || typeof P.playVideo !== 'function') return;   // 还没创建，下轮再来
-      var pv = function (s) { adStats.blocked++; grantNow(s); return true; };
-      pv.__lmz = true;
-      P.playVideo = pv;
-      _adPatched = true;
-      log('已patch Platform.playVideo');
-    } catch (e) {}
-    try {
-      var M = window.MetaH5Ad;
-      if (M && typeof M.showAd === 'function' && !M.showAd.__lmz) {
-        var sa = function (type, cb) {
-          adStats.blocked++;
-          try { if (typeof cb === 'function') cb({ code: 0, data: { status: 4 } }); } catch (e) {}
-          return true;
-        };
-        sa.__lmz = true;
-        M.showAd = sa;
-      }
+      if (window.MetaH5Ad && _origShowAd) window.MetaH5Ad.showAd = _origShowAd;
     } catch (e) {}
   }
 
@@ -761,15 +716,15 @@
   function boot() {
     if (CFG.guestMode) ensureGuestIdentity();
     patchAds();
-    patchPlatformOnce();
+    // ★ 进入即 = 已完成一局：不弹引导/公告板，模式与关卡直接是通关后的状态
+    if (CFG.finishOnEnter) finishTutorial();
     setInterval(function () {
       if (CFG.guestMode) ensureGuestIdentity();
-      patchPlatformOnce();          // 等 Platform 创建出来再补，不用 setter 守护
-      if (CFG.blockAds) patchAds();
+      if (CFG.blockAds) patchAds();   // 等 MetaH5Ad 加载出来再补，幂等
       killLogin();
       injectGame();
       syncGear();
-    }, 500);                        // 250ms 太频，500ms 足够且不卡
+    }, 500);                          // 250ms 太频，500ms 足够且不卡
     document.addEventListener('keydown', function (e) {
       if (e && e.key === 'F1') { e.preventDefault(); openPanel(); }
     });
