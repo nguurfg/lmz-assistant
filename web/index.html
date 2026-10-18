@@ -80,11 +80,23 @@
 </header>
 
 <div class="card center">
-  <p style="color:var(--dim);margin-bottom:16px">最快方式：点下面按钮直接装（需已安装用户脚本扩展）</p>
-  <a class="btn btn-primary" href="../userscript/lmz-assistant.user.js" download="lmz-assistant.user.js">
-    ⬇ 下载安装脚本
+  <p style="color:var(--dim);margin-bottom:16px">
+    已装好 Tampermonkey / Violentmonkey？<b>点下面按钮直接装</b>，无需下载文件
+  </p>
+  <a class="btn btn-primary" href="https://nguurfg.github.io/lmz-assistant/userscript/lmz-assistant.user.js"
+     id="installBtn" target="_blank" rel="noopener">
+    ⬇ 一键安装脚本
   </a>
-  <p style="color:var(--dim);font-size:13px;margin-top:14px">下载后按下方「安装步骤」操作</p>
+  <p style="color:var(--dim);font-size:13px;margin-top:14px" id="installHint">
+    点开后扩展会自动弹出「安装用户脚本」确认框 → 点<b>安装</b>即可
+  </p>
+</div>
+
+<div class="note" style="margin-top:0">
+  <b>没装扩展会怎样？</b><br>
+  点了按钮只会看到一页脚本文本，装不上。<br>
+  → 先按下方「安装步骤」页签装好 <b>Tampermonkey</b>（或 Violentmonkey），
+  再回来点这个按钮，10 秒搞定。
 </div>
 
 <h2>安装步骤</h2>
@@ -264,6 +276,19 @@
       document.getElementById(t.dataset.t).classList.add('active');
     });
   });
+
+  // 检测是否已装用户脚本扩展：Tampermonkey / Violentmonkey 都会往 window 挂对象
+  (function(){
+    var hasExt = !!(window.Tampermonkey || window.Violentmonkey || window.GM_info);
+    var btn = document.getElementById('installBtn');
+    var hint = document.getElementById('installHint');
+    if (!hasExt){
+      // 没扩展：不直接跳脚本文本页，先引导去装扩展
+      btn.textContent = '① 先安装 Tampermonkey';
+      btn.href = 'https://www.tampermonkey.net';
+      hint.innerHTML = '装完扩展后<b>刷新本页</b>，这个按钮会变成「一键安装脚本」';
+    }
+  })();
 </script>
 </body>
 </html>
