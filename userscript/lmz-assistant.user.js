@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         猎梦者助手（免登录直玩 + 作弊菜单）
 // @namespace    https://github.com/lmzydocs/lmz-assistant
-// @version      6.2
+// @version      6.3
 // @description  233乐园小游戏助手：免登录直玩、免激励视频、游戏内作弊菜单、存档导入导出。纯本地修改，不上传任何数据。
 // @author       lmzydocs
 // @match        https://h5.metaapp.cn/*
@@ -238,26 +238,33 @@
     try { if (window.MetaH5Ad && _origShowAd) window.MetaH5Ad.showAd = _origShowAd; } catch (e) {}
   }
 
-  // Platform 由 bundle 在运行时创建，只打一次补丁会被覆盖，故守护 setter
-  function installAdGuard() {
-    if (window.__lmzAdGuard) return;
-    window.__lmzAdGuard = true;
-    var _plat = window.Platform;
+  // Platform 由 bundle 在运行时创建，需在创建后打补丁。
+  // ★ 不用 Object.defineProperty setter（游戏高频赋值 window.Platform，
+  //   每次触发都会跑一遍函数替换 → 主线程被拖死，实测页面卡死）
+  // 改为低频扫描（与主循环同频）+ 幂等标记，最多补几次就稳定。
+  var _adPatched = false;
+  function patchPlatformOnce() {
+    if (_adPatched) return;
     try {
-      Object.defineProperty(window, 'Platform', {
-        configurable: true,
-        get: function () { return _plat; },
-        set: function (v) {
-          _plat = v;
-          try {
-            if (v && typeof v.playVideo === 'function' && !v.playVideo.__lmz) {
-              var pv = function (s) { adStats.blocked++; grantNow(s); return true; };
-              pv.__lmz = true;
-              v.playVideo = pv;
-            }
-          } catch (e) {}
-        }
-      });
+      var P = window.Platform;
+      if (!P || typeof P.playVideo !== 'function') return;   // 还没创建，下轮再来
+      var pv = function (s) { adStats.blocked++; grantNow(s); return true; };
+      pv.__lmz = true;
+      P.playVideo = pv;
+      _adPatched = true;
+      log('已patch Platform.playVideo');
+    } catch (e) {}
+    try {
+      var M = window.MetaH5Ad;
+      if (M && typeof M.showAd === 'function' && !M.showAd.__lmz) {
+        var sa = function (type, cb) {
+          adStats.blocked++;
+          try { if (typeof cb === 'function') cb({ code: 0, data: { status: 4 } }); } catch (e) {}
+          return true;
+        };
+        sa.__lmz = true;
+        M.showAd = sa;
+      }
     } catch (e) {}
   }
 
@@ -289,16 +296,25 @@
     if (!pd._blueprint) return;
     Object.keys(pd._blueprint).forEach(function (k) { pd._blueprint[k] = 99; });
   }
+  // 地图数组真实结构（实测）：
+  //   _plotInfo  6 元素：[mapId, 名称, 0, 0, 0, 1]      ← 最后一个是通关标记
+  //   _normalInfo 5 元素：["map0","经典地图",1,1,1]      ← 后三个 1 = 已通关
   function clearStory(pd) {
     ['_plotInfo', '_normalInfo', '_trollInfo', '_puppetInfo', '_coupleInfo'].forEach(function (key) {
       var arr = pd[key];
       if (!Array.isArray(arr)) return;
       arr.forEach(function (row) {
         if (!Array.isArray(row)) return;
-        if (row.length >= 6) { row[5] = 1; row[4] = 0; } else { row[row.length - 1] = 1; }
+        if (row.length === 6) { row[2] = 1; row[3] = 1; row[4] = 1; row[5] = 1; }
+        else if (row.length === 5) { row[2] = 1; row[3] = 1; row[4] = 1; }
+        else if (row.length > 2) { row[row.length - 1] = 1; }
       });
     });
   }
+  // _unlockSkinFragment 真实结构（实测 9 元素）：
+  //   [名字, 当前碎片, 已解锁, 门槛1碎片数, 已达成?, 门槛2碎片数, 已达成?, 已达成?, ?]
+  //   正常已解锁样例：["wangxiaoming", 0, 1, 40, 1, 45, 1, 0, 1]
+  //   ★ 旧版把 r[3]/r[5]/r[7] 清零 → 门槛变成 0 → 皮肤显示异常
   function grantSkins(pd) {
     if (Array.isArray(pd._skinFragment)) {
       pd._skinFragment.forEach(function (r) { if (Array.isArray(r)) r[1] = 9999; });
@@ -306,7 +322,15 @@
     if (Array.isArray(pd._unlockSkinFragment)) {
       pd._unlockSkinFragment.forEach(function (r) {
         if (!Array.isArray(r)) return;
-        r[1] = 9999; r[2] = 1; r[3] = 0; r[5] = 0; r[7] = 0;
+        if (r.length < 9) return;              // 结构不符，不动
+        r[1] = 9999;   // 当前碎片
+        r[2] = 1;      // 已解锁
+        r[3] = 30;     // 门槛1碎片数
+        r[4] = 1;      // 门槛1已达成
+        r[5] = 45;     // 门槛2碎片数
+        r[6] = 1;      // 门槛2已达成
+        r[7] = 0;
+        r[8] = 1;      // 最终态 = 1（见 wangxiaoming）
       });
     }
     if (Array.isArray(pd._skinSelectIndex)) {
@@ -336,7 +360,10 @@
       if (typeof s.Money === 'number') s.Money = 999999;
       if (typeof s.goldMoneyNum === 'number') s.goldMoneyNum = 999999;
       if (typeof s.moneyNum === 'number') s.moneyNum = 999999;
-      if (typeof s.physicalNum === 'number') s.physicalNum = 9999;
+      // ★ 体力在嵌套对象 physicalData 里（2026-10-18 实测），旧版写 s.physicalNum 是错的
+      if (s.physicalData && typeof s.physicalData.physicalNum === 'number') {
+        s.physicalData.physicalNum = 9999;
+      }
       writeJSON(k, s);
     }
   }
@@ -643,34 +670,44 @@
     ev.mousedown.push({ __lmz: true, runWith: fire });
   }
 
+  // ★ setChildIndex 是布局操作，每 250ms 调一次会让游戏重算整个 topBox 布局
+  //   → 设置按钮与其他 topBox 子项被反复重排 → 表现为"设置/皮肤不显示"
+  // 改为只在可见性被游戏关掉时才提层，且加 2 秒节流。
+  var _lastLift = 0;
   function syncGear() {
     if (!CFG.menuInGame || !isGame() || !window.Laya || !Laya.stage) return;
     var top = findTop();
     if (!top) return;
     var gear = top.getChildByName('settingBtn');
     if (!gear) return;
-    if (!gear.visible) gear.visible = true;
-    if (gear.alpha !== 1) gear.alpha = 1;
-    try {
-      if (top.getChildIndex(gear) !== top.numChildren - 1) {
-        top.setChildIndex(gear, top.numChildren - 1);
-      }
-    } catch (e) {}
-    bindGear(gear);
+    var need = false;
+    if (!gear.visible) { gear.visible = true; need = true; }
+    if (gear.alpha !== 1) { gear.alpha = 1; need = true; }
+    var now = Date.now();
+    if (need && now - _lastLift > 2000) {
+      _lastLift = now;
+      try {
+        if (top.getChildIndex(gear) !== top.numChildren - 1) {
+          top.setChildIndex(gear, top.numChildren - 1);
+        }
+      } catch (e) {}
+    }
+    if (!gear.__lmzBound) bindGear(gear);
   }
 
   /* ------------------------- 启动 ------------------------- */
   function boot() {
     if (CFG.guestMode) ensureGuestIdentity();
-    installAdGuard();
     patchAds();
+    patchPlatformOnce();
     setInterval(function () {
       if (CFG.guestMode) ensureGuestIdentity();
-      patchAds();
+      patchPlatformOnce();          // 等 Platform 创建出来再补，不用 setter 守护
+      if (CFG.blockAds) patchAds();
       killLogin();
       injectGame();
       syncGear();
-    }, 250);
+    }, 500);                        // 250ms 太频，500ms 足够且不卡
     document.addEventListener('keydown', function (e) {
       if (e && e.key === 'F1') { e.preventDefault(); openPanel(); }
     });
